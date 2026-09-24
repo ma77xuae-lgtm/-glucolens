@@ -1,1 +1,382 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlucoLens</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #f4f8f6;
+      color: #17352d;
+    }
+
+    header {
+      background: #1f6f5b;
+      color: white;
+      padding: 25px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 32px;
+    }
+
+    header p {
+      margin-bottom: 0;
+    }
+
+    main {
+      max-width: 650px;
+      margin: auto;
+      padding: 25px;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .active {
+      display: block;
+    }
+
+    .card {
+      background: white;
+      padding: 22px;
+      border-radius: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      background: #1f6f5b;
+      color: white;
+      font-size: 17px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #185746;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+    }
+
+    #foodImage {
+      max-width: 100%;
+      max-height: 280px;
+      border-radius: 15px;
+      margin-top: 15px;
+      display: none;
+    }
+
+    .nutrition {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .nutrition div {
+      background: #eef6f2;
+      padding: 18px;
+      border-radius: 14px;
+      text-align: center;
+    }
+
+    .number {
+      font-size: 25px;
+      font-weight: bold;
+      margin-top: 5px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .warning {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>🩸 GlucoLens</h1>
+  <p>Understand your meal at a glance.</p>
+</header>
+
+<main>
+
+  <!-- HOME -->
+  <section id="home" class="screen active">
+
+    <div class="card">
+      <h2>Welcome to GlucoLens 👋</h2>
+
+      <p>
+        GlucoLens is a science-fair prototype that estimates
+        nutrition information from meals.
+      </p>
+
+      <button onclick="showScreen('scan')">
+        📷 Scan My Meal
+      </button>
+    </div>
+
+    <div class="card">
+      <h3>How it works</h3>
+
+      <p>📷 Take or upload a food picture.</p>
+      <p>🤖 Analyze the meal.</p>
+      <p>📊 View estimated nutrition.</p>
+      <p>⚖️ Change the portion and see how carbohydrates change.</p>
+    </div>
+
+  </section>
+
+
+  <!-- SCAN -->
+  <section id="scan" class="screen">
+
+    <div class="card">
+
+      <h2>📷 Scan Your Meal</h2>
+
+      <p>
+        Upload a picture of your food.
+      </p>
+
+      <input
+        type="file"
+        accept="image/*"
+        id="imageInput"
+        onchange="previewImage()"
+      >
+
+      <img id="foodImage">
+
+      <button onclick="analyzeMeal()">
+        🔍 Analyze Meal
+      </button>
+
+      <button onclick="showScreen('home')">
+        ← Back
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- RESULTS -->
+  <section id="results" class="screen">
+
+    <div class="card">
+
+      <h2>🍽️ Meal Analysis</h2>
+
+      <p id="detectedFood">
+        🍚 Rice + 🍗 Chicken + 🥦 Vegetables
+      </p>
+
+      <div class="nutrition">
+
+        <div>
+          <div>Carbohydrates</div>
+          <div class="number" id="carbs">58 g</div>
+        </div>
+
+        <div>
+          <div>Sugar</div>
+          <div class="number" id="sugar">10 g</div>
+        </div>
+
+        <div>
+          <div>Protein</div>
+          <div class="number">31 g</div>
+        </div>
+
+        <div>
+          <div>Fat</div>
+          <div class="number">14 g</div>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h3>📊 Estimated carbohydrate level</h3>
+
+      <p id="impact">
+        Moderate
+      </p>
+
+      <p>
+        Most of the estimated carbohydrates in this meal
+        come from the rice.
+      </p>
+
+    </div>
+
+
+    <div class="card">
+
+      <h3>⚖️ Portion Simulator</h3>
+
+      <p>
+        Change the portion of the carbohydrate-containing food.
+      </p>
+
+      <input
+        type="range"
+        min="25"
+        max="150"
+        value="100"
+        oninput="changePortion(this.value)"
+      >
+
+      <p>
+        Portion: <strong id="portion">100%</strong>
+      </p>
+
+      <p>
+        Estimated carbohydrates:
+        <strong id="portionCarbs">58 g</strong>
+      </p>
+
+    </div>
+
+
+    <div class="card">
+
+      <button onclick="showScreen('scan')">
+        📷 Scan Another Meal
+      </button>
+
+      <button onclick="showScreen('home')">
+        🏠 Home
+      </button>
+
+    </div>
+
+
+    <div class="card">
+
+      <h3>⚠️ Important</h3>
+
+      <p class="warning">
+        GlucoLens is an educational science-fair prototype.
+        It provides estimates and does not measure blood glucose
+        or replace advice from a healthcare professional.
+      </p>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+<script>
+
+function showScreen(screenName) {
+
+  const screens = document.querySelectorAll(".screen");
+
+  screens.forEach(function(screen) {
+    screen.classList.remove("active");
+  });
+
+  document.getElementById(screenName).classList.add("active");
+
+}
+
+
+function previewImage() {
+
+  const input = document.getElementById("imageInput");
+  const image = document.getElementById("foodImage");
+
+  if (input.files && input.files[0]) {
+
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+
+      image.src = event.target.result;
+      image.style.display = "block";
+
+    };
+
+    reader.readAsDataURL(input.files[0]);
+
+  }
+
+}
+
+
+function analyzeMeal() {
+
+  showScreen("results");
+
+}
+
+
+function changePortion(value) {
+
+  document.getElementById("portion").textContent =
+    value + "%";
+
+  const originalCarbs = 58;
+
+  const newCarbs =
+    Math.round(originalCarbs * value / 100);
+
+  document.getElementById("portionCarbs").textContent =
+    newCarbs + " g";
+
+  if (newCarbs >= 60) {
+
+    document.getElementById("impact").textContent =
+      "Higher estimated carbohydrate amount";
+
+  } else if (newCarbs >= 40) {
+
+    document.getElementById("impact").textContent =
+      "Moderate estimated carbohydrate amount";
+
+  } else {
+
+    document.getElementById("impact").textContent =
+      "Lower estimated carbohydrate amount";
+
+  }
+
+}
+
+</script>
+
+</body>
+</html>
