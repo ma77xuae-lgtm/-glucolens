@@ -1,382 +1,872 @@
 
+
+
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GlucoLens</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
+<meta charset="UTF-8">
 
-    body {
-      margin: 0;
-      background: #f4f8f6;
-      color: #17352d;
-    }
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    header {
-      background: #1f6f5b;
-      color: white;
-      padding: 25px;
-      text-align: center;
-    }
+<title>GlucoLens</title>
 
-    header h1 {
-      margin: 0;
-      font-size: 32px;
-    }
+<style>
 
-    header p {
-      margin-bottom: 0;
-    }
+:root {
 
-    main {
-      max-width: 650px;
-      margin: auto;
-      padding: 25px;
-    }
+  --blue: #65aee0;
 
-    .screen {
-      display: none;
-    }
+  --dark: #244968;
 
-    .active {
-      display: block;
-    }
+  --pale: #eaf5ff;
 
-    .card {
-      background: white;
-      padding: 22px;
-      border-radius: 18px;
-      margin-bottom: 18px;
-      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
-    }
+  --border: #d5e9f8;
 
-    button {
-      width: 100%;
-      padding: 15px;
-      border: none;
-      border-radius: 12px;
-      background: #1f6f5b;
-      color: white;
-      font-size: 17px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
+  --white: #ffffff;
 
-    button:hover {
-      background: #185746;
-    }
+}
 
-    input[type="file"] {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-    }
+* { box-sizing: border-box; }
 
-    #foodImage {
-      max-width: 100%;
-      max-height: 280px;
-      border-radius: 15px;
-      margin-top: 15px;
-      display: none;
-    }
+body {
 
-    .nutrition {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
+  margin: 0;
 
-    .nutrition div {
-      background: #eef6f2;
-      padding: 18px;
-      border-radius: 14px;
-      text-align: center;
-    }
+  font-family: Arial, sans-serif;
 
-    .number {
-      font-size: 25px;
-      font-weight: bold;
-      margin-top: 5px;
-    }
+  background: var(--pale);
 
-    input[type="range"] {
-      width: 100%;
-    }
+  color: var(--dark);
 
-    .warning {
-      font-size: 13px;
-      color: #666;
-      line-height: 1.5;
-    }
-  </style>
+}
+
+header {
+
+  background: var(--white);
+
+  padding: 20px;
+
+  text-align: center;
+
+  border-bottom: 1px solid var(--border);
+
+}
+
+header h1 { margin: 0; font-size: 28px; }
+
+header p { margin: 7px 0 0; color: #64839d; }
+
+main {
+
+  width: min(700px, 92%);
+
+  margin: 25px auto;
+
+}
+
+.card {
+
+  background: var(--white);
+
+  border: 1px solid var(--border);
+
+  border-radius: 18px;
+
+  padding: 22px;
+
+  margin-bottom: 18px;
+
+  box-shadow: 0 4px 14px #2449680c;
+
+}
+
+h2 { margin-top: 0; }
+
+h3 { margin-bottom: 10px; }
+
+p { line-height: 1.5; }
+
+button, select, input {
+
+  font: inherit;
+
+}
+
+button {
+
+  border: 0;
+
+  border-radius: 12px;
+
+  padding: 13px 18px;
+
+  background: var(--blue);
+
+  color: white;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+}
+
+button.secondary {
+
+  background: #e6f3fc;
+
+  color: var(--dark);
+
+}
+
+button:hover { opacity: .9; }
+
+input, select {
+
+  width: 100%;
+
+  padding: 12px;
+
+  border: 1px solid var(--border);
+
+  border-radius: 10px;
+
+  background: white;
+
+  color: var(--dark);
+
+  margin-top: 7px;
+
+}
+
+label {
+
+  display: block;
+
+  font-weight: bold;
+
+  margin-top: 14px;
+
+}
+
+.small { color: #64839d; font-size: 13px; }
+
+#preview {
+
+  width: 100%;
+
+  max-height: 300px;
+
+  object-fit: contain;
+
+  border-radius: 12px;
+
+  margin-top: 15px;
+
+  display: none;
+
+  background: var(--pale);
+
+}
+
+.row {
+
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 12px;
+
+}
+
+.food-row {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 12px 0;
+
+  border-bottom: 1px solid var(--border);
+
+}
+
+.food-row input {
+
+  width: 85px;
+
+  margin: 0;
+
+}
+
+.food-row button {
+
+  padding: 8px 11px;
+
+  background: #e6f3fc;
+
+  color: var(--dark);
+
+}
+
+.totals {
+
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 12px;
+
+}
+
+.total {
+
+  background: var(--pale);
+
+  border-radius: 13px;
+
+  padding: 16px;
+
+}
+
+.total strong {
+
+  display: block;
+
+  font-size: 25px;
+
+  margin-top: 7px;
+
+}
+
+.hidden { display: none; }
+
+.notice {
+
+  background: #f1f8fe;
+
+  border-left: 4px solid var(--blue);
+
+  padding: 12px;
+
+  border-radius: 8px;
+
+  font-size: 13px;
+
+}
+
+footer {
+
+  text-align: center;
+
+  padding: 20px;
+
+  color: #64839d;
+
+  font-size: 12px;
+
+}
+
+@media(max-width: 450px) {
+
+  .row { grid-template-columns: 1fr; }
+
+  .food-row { flex-wrap: wrap; }
+
+}
+
+</style>
+
 </head>
 
 <body>
 
 <header>
-  <h1>🩸 GlucoLens</h1>
+
+  <h1>💙 GlucoLens</h1>
+
   <p>Understand your meal at a glance.</p>
+
 </header>
 
 <main>
 
-  <!-- HOME -->
-  <section id="home" class="screen active">
+  <section class="card" id="home">
 
-    <div class="card">
-      <h2>Welcome to GlucoLens 👋</h2>
+    <h2>Welcome to GlucoLens!</h2>
 
-      <p>
-        GlucoLens is a science-fair prototype that estimates
-        nutrition information from meals.
-      </p>
+    <p>Explore the estimated nutrition information in your meal.</p>
 
-      <button onclick="showScreen('scan')">
-        📷 Scan My Meal
-      </button>
-    </div>
+    <p>📷 Upload a meal photo</p>
 
-    <div class="card">
-      <h3>How it works</h3>
+    <p>🍽️ Confirm the foods and portions</p>
 
-      <p>📷 Take or upload a food picture.</p>
-      <p>🤖 Analyze the meal.</p>
-      <p>📊 View estimated nutrition.</p>
-      <p>⚖️ Change the portion and see how carbohydrates change.</p>
-    </div>
+    <p>📊 View estimated nutrition</p>
+
+    <button onclick="showScanner()">Scan My Meal →</button>
 
   </section>
 
+  <section class="card hidden" id="scanner">
 
-  <!-- SCAN -->
-  <section id="scan" class="screen">
+    <h2>📷 Upload your meal</h2>
 
-    <div class="card">
+    <p>Choose a photo from your device.</p>
 
-      <h2>📷 Scan Your Meal</h2>
+    <input type="file" id="photo" accept="image/*">
 
-      <p>
-        Upload a picture of your food.
-      </p>
+    <img id="preview" alt="Your uploaded meal">
 
-      <input
-        type="file"
-        accept="image/*"
-        id="imageInput"
-        onchange="previewImage()"
-      >
+    <div class="notice">
 
-      <img id="foodImage">
+      Your photo is used as a visual reference. You will select
 
-      <button onclick="analyzeMeal()">
-        🔍 Analyze Meal
-      </button>
+      the foods yourself because this version does not identify
 
-      <button onclick="showScreen('home')">
-        ← Back
-      </button>
+      food automatically.
 
     </div>
 
-  </section>
+    <h3>What is in your meal?</h3>
 
+    <label for="food">Choose a food</label>
 
-  <!-- RESULTS -->
-  <section id="results" class="screen">
+    <select id="food">
 
-    <div class="card">
+      <option value="">Select a food...</option>
 
-      <h2>🍽️ Meal Analysis</h2>
+    </select>
 
-      <p id="detectedFood">
-        🍚 Rice + 🍗 Chicken + 🥦 Vegetables
-      </p>
+    <div class="row">
 
-      <div class="nutrition">
+      <div>
 
-        <div>
-          <div>Carbohydrates</div>
-          <div class="number" id="carbs">58 g</div>
-        </div>
+        <label for="grams">Serving size (grams)</label>
 
-        <div>
-          <div>Sugar</div>
-          <div class="number" id="sugar">10 g</div>
-        </div>
+        <input id="grams" type="number" min="1" max="2000" value="100">
 
-        <div>
-          <div>Protein</div>
-          <div class="number">31 g</div>
-        </div>
+      </div>
 
-        <div>
-          <div>Fat</div>
-          <div class="number">14 g</div>
-        </div>
+      <div style="display:flex;align-items:end">
+
+        <button style="width:100%" onclick="addFood()">+ Add food</button>
 
       </div>
 
     </div>
 
+    <h3>Your selected foods</h3>
 
-    <div class="card">
+    <div id="foodList">
 
-      <h3>📊 Estimated carbohydrate level</h3>
-
-      <p id="impact">
-        Moderate
-      </p>
-
-      <p>
-        Most of the estimated carbohydrates in this meal
-        come from the rice.
-      </p>
+      <p class="small">No foods added yet.</p>
 
     </div>
 
+    <button onclick="calculate()" style="width:100%;margin-top:18px">
 
-    <div class="card">
+      Calculate Nutrition
 
-      <h3>⚖️ Portion Simulator</h3>
+    </button>
 
-      <p>
-        Change the portion of the carbohydrate-containing food.
-      </p>
+    <button class="secondary" onclick="goHome()" style="width:100%;margin-top:9px">
 
-      <input
-        type="range"
-        min="25"
-        max="150"
-        value="100"
-        oninput="changePortion(this.value)"
-      >
+      ← Back to Home
 
-      <p>
-        Portion: <strong id="portion">100%</strong>
-      </p>
+    </button>
 
-      <p>
-        Estimated carbohydrates:
-        <strong id="portionCarbs">58 g</strong>
-      </p>
+  </section>
+
+  <section class="card hidden" id="results">
+
+    <h2>📊 Your meal results</h2>
+
+    <p>Here are the estimated nutrients for your selected foods.</p>
+
+    <div class="totals">
+
+      <div class="total">
+
+        Carbohydrates
+
+        <strong id="carbs">0 g</strong>
+
+      </div>
+
+      <div class="total">
+
+        Sugar
+
+        <strong id="sugar">0 g</strong>
+
+      </div>
+
+      <div class="total">
+
+        Protein
+
+        <strong id="protein">0 g</strong>
+
+      </div>
+
+      <div class="total">
+
+        Fat
+
+        <strong id="fat">0 g</strong>
+
+      </div>
 
     </div>
 
+    <h3>Adjust your portions</h3>
 
-    <div class="card">
+    <p class="small">Change the grams of any food to update the estimates.</p>
 
-      <button onclick="showScreen('scan')">
-        📷 Scan Another Meal
-      </button>
+    <div id="adjustList"></div>
 
-      <button onclick="showScreen('home')">
-        🏠 Home
-      </button>
+    <button onclick="showScanner()" style="width:100%;margin-top:18px">
 
-    </div>
+      Scan Another Meal
 
+    </button>
 
-    <div class="card">
+    <button class="secondary" onclick="goHome()" style="width:100%;margin-top:9px">
 
-      <h3>⚠️ Important</h3>
+      Home
 
-      <p class="warning">
-        GlucoLens is an educational science-fair prototype.
-        It provides estimates and does not measure blood glucose
-        or replace advice from a healthcare professional.
-      </p>
+    </button>
 
-    </div>
+  </section>
+
+  <section class="card">
+
+    <h3>Important information</h3>
+
+    <p class="small">
+
+      GlucoLens provides educational nutrition estimates only.
+
+      Values depend on food type, ingredients and portion size.
+
+      They may not match the actual meal. GlucoLens does not
+
+      measure blood glucose or predict your personal blood-glucose
+
+      response. It does not provide medical or insulin advice.
+
+      Check food labels and follow guidance from your healthcare team.
+
+    </p>
 
   </section>
 
 </main>
 
+<footer>Made with 💙 for GlucoLens</footer>
 
 <script>
 
-function showScreen(screenName) {
+// Approximate nutrition per 100 grams.
 
-  const screens = document.querySelectorAll(".screen");
+// Values vary with recipes, preparation and food brands.
 
-  screens.forEach(function(screen) {
-    screen.classList.remove("active");
-  });
+const foods = {
 
-  document.getElementById(screenName).classList.add("active");
+  rice: {
+
+    name: "Cooked white rice",
+
+    carbs: 28.2, sugar: 0.1, protein: 2.7, fat: 0.3
+
+  },
+
+  brownrice: {
+
+    name: "Cooked brown rice",
+
+    carbs: 25.6, sugar: 0.2, protein: 2.7, fat: 1.0
+
+  },
+
+  chicken: {
+
+    name: "Cooked chicken breast",
+
+    carbs: 0, sugar: 0, protein: 31, fat: 3.6
+
+  },
+
+  broccoli: {
+
+    name: "Broccoli",
+
+    carbs: 6.6, sugar: 1.7, protein: 2.8, fat: 0.4
+
+  },
+
+  carrot: {
+
+    name: "Carrot",
+
+    carbs: 9.6, sugar: 4.7, protein: 0.9, fat: 0.2
+
+  },
+
+  potato: {
+
+    name: "Boiled potato",
+
+    carbs: 20.1, sugar: 0.9, protein: 1.9, fat: 0.1
+
+  },
+
+  apple: {
+
+    name: "Apple",
+
+    carbs: 13.8, sugar: 10.4, protein: 0.3, fat: 0.2
+
+  },
+
+  banana: {
+
+    name: "Banana",
+
+    carbs: 22.8, sugar: 12.2, protein: 1.1, fat: 0.3
+
+  },
+
+  egg: {
+
+    name: "Boiled egg",
+
+    carbs: 1.1, sugar: 1.1, protein: 12.6, fat: 10.6
+
+  },
+
+  chickpeas: {
+
+    name: "Cooked chickpeas",
+
+    carbs: 27.4, sugar: 4.8, protein: 8.9, fat: 2.6
+
+  },
+
+  cucumber: {
+
+    name: "Cucumber",
+
+    carbs: 3.6, sugar: 1.7, protein: 0.7, fat: 0.1
+
+  },
+
+  tomato: {
+
+    name: "Tomato",
+
+    carbs: 3.9, sugar: 2.6, protein: 0.9, fat: 0.2
+
+  },
+
+  bread: {
+
+    name: "White bread",
+
+    carbs: 49, sugar: 5, protein: 9, fat: 3.2
+
+  },
+
+  avocado: {
+
+    name: "Avocado",
+
+    carbs: 8.5, sugar: 0.7, protein: 2, fat: 14.7
+
+  }
+
+};
+
+let selectedFoods = [];
+
+const foodSelect = document.getElementById("food");
+
+Object.keys(foods).forEach(key => {
+
+  const option = document.createElement("option");
+
+  option.value = key;
+
+  option.textContent = foods[key].name;
+
+  foodSelect.appendChild(option);
+
+});
+
+function showScanner() {
+
+  document.getElementById("home").classList.add("hidden");
+
+  document.getElementById("results").classList.add("hidden");
+
+  document.getElementById("scanner").classList.remove("hidden");
 
 }
 
+function goHome() {
 
-function previewImage() {
+  document.getElementById("home").classList.remove("hidden");
 
-  const input = document.getElementById("imageInput");
-  const image = document.getElementById("foodImage");
+  document.getElementById("scanner").classList.add("hidden");
 
-  if (input.files && input.files[0]) {
+  document.getElementById("results").classList.add("hidden");
 
-    const reader = new FileReader();
+}
 
-    reader.onload = function(event) {
+document.getElementById("photo").addEventListener("change", function() {
 
-      image.src = event.target.result;
-      image.style.display = "block";
+  const file = this.files[0];
+
+  const preview = document.getElementById("preview");
+
+  if (!file) {
+
+    preview.style.display = "none";
+
+    return;
+
+  }
+
+  if (!file.type.startsWith("image/")) {
+
+    alert("Please choose an image file.");
+
+    this.value = "";
+
+    return;
+
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function(event) {
+
+    preview.src = event.target.result;
+
+    preview.style.display = "block";
+
+  };
+
+  reader.readAsDataURL(file);
+
+});
+
+function addFood() {
+
+  const key = foodSelect.value;
+
+  const grams = Number(document.getElementById("grams").value);
+
+  if (!key) {
+
+    alert("Please select a food first.");
+
+    return;
+
+  }
+
+  if (!Number.isFinite(grams) || grams <= 0 || grams > 2000) {
+
+    alert("Please enter a serving size between 1 and 2000 grams.");
+
+    return;
+
+  }
+
+  selectedFoods.push({
+
+    id: Date.now() + Math.random(),
+
+    key: key,
+
+    grams: grams
+
+  });
+
+  foodSelect.value = "";
+
+  document.getElementById("grams").value = 100;
+
+  renderFoods();
+
+}
+
+function renderFoods() {
+
+  const list = document.getElementById("foodList");
+
+  list.innerHTML = "";
+
+  if (selectedFoods.length === 0) {
+
+    list.innerHTML = '<p class="small">No foods added yet.</p>';
+
+    return;
+
+  }
+
+  selectedFoods.forEach(item => {
+
+    const row = document.createElement("div");
+
+    row.className = "food-row";
+
+    const name = document.createElement("span");
+
+    name.textContent = foods[item.key].name;
+
+    const amount = document.createElement("span");
+
+    amount.textContent = item.grams + " g";
+
+    const remove = document.createElement("button");
+
+    remove.textContent = "Remove";
+
+    remove.onclick = () => {
+
+      selectedFoods = selectedFoods.filter(f => f.id !== item.id);
+
+      renderFoods();
 
     };
 
-    reader.readAsDataURL(input.files[0]);
+    row.append(name, amount, remove);
 
-  }
+    list.appendChild(row);
 
-}
-
-
-function analyzeMeal() {
-
-  showScreen("results");
+  });
 
 }
 
+function calculate() {
 
-function changePortion(value) {
+  if (selectedFoods.length === 0) {
 
-  document.getElementById("portion").textContent =
-    value + "%";
+    alert("Please add at least one food.");
 
-  const originalCarbs = 58;
-
-  const newCarbs =
-    Math.round(originalCarbs * value / 100);
-
-  document.getElementById("portionCarbs").textContent =
-    newCarbs + " g";
-
-  if (newCarbs >= 60) {
-
-    document.getElementById("impact").textContent =
-      "Higher estimated carbohydrate amount";
-
-  } else if (newCarbs >= 40) {
-
-    document.getElementById("impact").textContent =
-      "Moderate estimated carbohydrate amount";
-
-  } else {
-
-    document.getElementById("impact").textContent =
-      "Lower estimated carbohydrate amount";
+    return;
 
   }
+
+  document.getElementById("scanner").classList.add("hidden");
+
+  document.getElementById("results").classList.remove("hidden");
+
+  renderAdjustments();
+
+  updateTotals();
+
+}
+
+function renderAdjustments() {
+
+  const list = document.getElementById("adjustList");
+
+  list.innerHTML = "";
+
+  selectedFoods.forEach(item => {
+
+    const row = document.createElement("div");
+
+    row.className = "food-row";
+
+    const name = document.createElement("span");
+
+    name.textContent = foods[item.key].name;
+
+    const amount = document.createElement("input");
+
+    amount.type = "number";
+
+    amount.min = "1";
+
+    amount.max = "2000";
+
+    amount.value = item.grams;
+
+    amount.setAttribute("aria-label", foods[item.key].name + " grams");
+
+    amount.addEventListener("input", () => {
+
+      const value = Number(amount.value);
+
+      if (Number.isFinite(value) && value > 0 && value <= 2000) {
+
+        item.grams = value;
+
+        updateTotals();
+
+      }
+
+    });
+
+    row.append(name, amount);
+
+    list.appendChild(row);
+
+  });
+
+}
+
+function updateTotals() {
+
+  const totals = {
+
+    carbs: 0,
+
+    sugar: 0,
+
+    protein: 0,
+
+    fat: 0
+
+  };
+
+  selectedFoods.forEach(item => {
+
+    const food = foods[item.key];
+
+    const factor = item.grams / 100;
+
+    totals.carbs += food.carbs * factor;
+
+    totals.sugar += food.sugar * factor;
+
+    totals.protein += food.protein * factor;
+
+    totals.fat += food.fat * factor;
+
+  });
+
+  Object.keys(totals).forEach(key => {
+
+    document.getElementById(key).textContent =
+
+      totals[key].toFixed(1) + " g";
+
+  });
 
 }
 
 </script>
 
 </body>
+
 </html>
