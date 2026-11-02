@@ -1,7 +1,9 @@
 
-
-import { pipeline, env } from
-  "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1";
+import {
+  pipeline,
+  env,
+  RawImage
+} from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1";
 
 env.allowLocalModels = false;
 
@@ -28,7 +30,6 @@ const results = document.getElementById("aiResults");
 
 button.addEventListener("click", async () => {
   const photo = document.getElementById("photo");
-  const preview = document.getElementById("preview");
 
   if (!photo.files || !photo.files[0]) {
     status.textContent = "Please upload a food photo first.";
@@ -39,20 +40,19 @@ button.addEventListener("click", async () => {
   results.replaceChildren();
 
   try {
-    status.textContent =
-      "Connecting to the AI model. Please wait...";
+    status.textContent = "Loading AI model. Please wait...";
 
     const model = await loadFoodModel();
 
-    status.textContent =
-      "Analyzing your food photo...";
+    status.textContent = "Preparing your photo...";
 
-    const predictions = await model(
-  preview.src,
-  {
-    top_k: 5
-  }
-);
+    const image = await RawImage.fromBlob(photo.files[0]);
+
+    status.textContent = "Analyzing your photo...";
+
+    const predictions = await model(image, {
+      top_k: 5
+    });
 
     const heading = document.createElement("h3");
     heading.textContent = "Possible food matches";
@@ -71,16 +71,14 @@ button.addEventListener("click", async () => {
     });
 
     status.textContent =
-      "Done! Please check whether the food matches your photo.";
-} catch (error) {
-  console.error(error);
+      "Suggestions ready! Please check the food matches.";
 
-  status.textContent =
-    "AI Error: " + (error.message || String(error));
+  } catch (error) {
+    console.error(error);
+    status.textContent =
+      "AI Error: " + (error.message || String(error));
 
-} finally {
+  } finally {
     button.disabled = false;
-
   }
-
 });
