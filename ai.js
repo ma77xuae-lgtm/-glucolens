@@ -47,9 +47,12 @@ button.addEventListener("click", async () => {
     status.textContent =
       "Analyzing your food photo...";
 
-    const predictions = await model(preview, {
-      top_k: 5
-    });
+    const predictions = await model(
+  preview.src,
+  {
+    top_k: 5
+  }
+);
 
     const heading = document.createElement("h3");
     heading.textContent = "Possible food matches";
