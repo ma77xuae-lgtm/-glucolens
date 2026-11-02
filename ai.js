@@ -69,14 +69,15 @@ button.addEventListener("click", async () => {
 
     status.textContent =
       "Done! Please check whether the food matches your photo.";
+} catch (error) {
+  console.error(error);
 
-  } catch (error) {
-    console.error(error);
+  status.textContent =
+    "AI Error: " + (error.message || String(error));
 
-    status.textContent =
-      "The AI could not load. Check your internet connection or try a browser that supports WebGPU.";
-
-  } finally {
+} finally {
     button.disabled = false;
+
   }
+
 });
