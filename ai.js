@@ -1,28 +1,42 @@
 
-
 import {
   pipeline,
-  env,
   RawImage
 } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1";
 
-env.allowLocalModels = false;
+let detector = null;
 
-let foodModel = null;
+async function loadDetector() {
+  if (detector) return detector;
 
-async function loadFoodModel() {
-  if (!foodModel) {
-    foodModel = await pipeline(
-      "image-classification",
-      "onnx-community/swin-finetuned-food101-ONNX",
+  const model = "onnx-community/grounding-dino-tiny-ONNX";
+
+  try {
+    document.getElementById("aiStatus").textContent =
+      "Loading AI model for your first scan...";
+
+    detector = await pipeline(
+      "zero-shot-object-detection",
+      model,
       {
-        dtype: "q4f16",
-        device: "webgpu"
+        device: "webgpu",
+        dtype: "q4f16"
+      }
+    );
+  } catch (gpuError) {
+    console.warn("WebGPU unavailable. Trying CPU.", gpuError);
+
+    detector = await pipeline(
+      "zero-shot-object-detection",
+      model,
+      {
+        device: "wasm",
+        dtype: "uint8"
       }
     );
   }
 
-  return foodModel;
+  return detector;
 }
 
 const button = document.getElementById("aiButton");
@@ -30,10 +44,11 @@ const status = document.getElementById("aiStatus");
 const results = document.getElementById("aiResults");
 
 button.addEventListener("click", async () => {
-  const photo = document.getElementById("photo");
+  const input = document.getElementById("photo");
+  const file = input.files?.[0];
 
-  if (!photo.files || !photo.files[0]) {
-    status.textContent = "Please upload a food photo first.";
+  if (!file) {
+    status.textContent = "Please upload a meal photo first.";
     return;
   }
 
@@ -41,43 +56,111 @@ button.addEventListener("click", async () => {
   results.replaceChildren();
 
   try {
-    status.textContent = "Loading AI model. Please wait...";
+    status.textContent = "Preparing your photograph...";
 
-    const model = await loadFoodModel();
+    const image = await RawImage.fromBlob(file);
+    const model = await loadDetector();
 
-    status.textContent = "Preparing your photo...";
+    const foods = [
+      "cooked rice",
+      "grilled chicken",
+      "broccoli",
+      "carrots",
+      "potatoes",
+      "boiled eggs",
+      "salmon",
+      "fish",
+      "beef",
+      "pasta",
+      "bread",
+      "tomatoes",
+      "cucumber",
+      "lettuce",
+      "avocado",
+      "beans",
+      "cheese",
+      "pizza",
+      "sandwich",
+      "banana",
+      "apple",
+      "orange"
+    ];
 
-    const image = await RawImage.fromBlob(photo.files[0]);
+    status.textContent = "Looking for individual foods...";
 
-    status.textContent = "Analyzing your photo...";
+    const detections = await model(
+      image,
+      foods,
+      {
+        threshold: 0.12,
+        top_k: 15
+      }
+    );
 
-    const predictions = await model(image, {
-      top_k: 5
-    });
+    const canvas = document.createElement("canvas");
+    canvas.width = image.width;
+    canvas.height = image.height;
+    canvas.style.width = "100%";
+    canvas.style.height = "auto";
+    canvas.style.borderRadius = "12px";
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(
+      await createImageBitmap(file),
+      0, 0, image.width, image.height
+    );
 
     const heading = document.createElement("h3");
-    heading.textContent = "Possible food matches";
+    heading.textContent = "Food detection suggestions";
     results.appendChild(heading);
 
-    predictions.forEach(item => {
-      const row = document.createElement("p");
+    const unique = [];
 
-      row.textContent =
-        item.label.replaceAll("_", " ") +
-        " · Model score: " +
-        (item.score * 100).toFixed(1) +
-        "%";
+    detections.forEach(item => {
+      const label = item.label.toLowerCase();
 
-      results.appendChild(row);
+      if (!unique.includes(label) && item.score >= 0.12) {
+        unique.push(label);
+
+        const box = item.box;
+        ctx.strokeStyle = "#1687df";
+        ctx.lineWidth = Math.max(3, image.width / 180);
+        ctx.strokeRect(
+          box.xmin,
+          box.ymin,
+          box.xmax - box.xmin,
+          box.ymax - box.ymin
+        );
+
+        ctx.fillStyle = "#1687df";
+        ctx.font = `bold ${Math.max(14, image.width / 45)}px Arial`;
+        ctx.fillText(label, box.xmin + 4, Math.max(18, box.ymin - 5));
+
+        const row = document.createElement("p");
+        row.textContent =
+          label + " — model score " +
+          (item.score * 100).toFixed(1) + "%";
+
+        results.appendChild(row);
+      }
     });
 
+    if (unique.length === 0) {
+      const message = document.createElement("p");
+      message.textContent =
+        "No confident food matches. Please select foods manually.";
+      results.appendChild(message);
+    } else {
+      results.insertBefore(canvas, heading.nextSibling);
+    }
+
     status.textContent =
-      "Suggestions ready! Please check the food matches.";
+      "Scan complete. Please confirm or correct every food.";
 
   } catch (error) {
     console.error(error);
     status.textContent =
-      "AI Error: " + (error.message || String(error));
+      "Detection error: " + error.message;
 
   } finally {
     button.disabled = false;
