@@ -5,7 +5,7 @@ import {
 } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1";
 
 const MODEL_ID = "onnx-community/grounding-dino-tiny-ONNX";
-const MAX_IMAGE_SIZE = 768;
+const MAX_SIZE = 512;
 const THRESHOLD = 0.25;
 
 let detector = null;
@@ -41,7 +41,71 @@ const foods = [
   "orange."
 ];
 
-// Load the model once and reuse it.
+// Compress and resize before AI processing.
+async function preparePhoto(file) {
+  const url = URL.createObjectURL(file);
+
+  try {
+    const img = new Image();
+
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = () => reject(
+        new Error("The photo could not be opened.")
+      );
+      img.src = url;
+    });
+
+    const scale = Math.min(
+      1,
+      MAX_SIZE / Math.max(img.naturalWidth, img.naturalHeight)
+    );
+
+    const canvas = document.createElement("canvas");
+
+    canvas.width = Math.max(
+      1,
+      Math.round(img.naturalWidth * scale)
+    );
+
+    canvas.height = Math.max(
+      1,
+      Math.round(img.naturalHeight * scale)
+    );
+
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      throw new Error("Could not create photo canvas.");
+    }
+
+    context.drawImage(
+      img,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    const blob = await new Promise((resolve, reject) => {
+      canvas.toBlob(
+        result => {
+          if (result) resolve(result);
+          else reject(new Error("Photo compression failed."));
+        },
+        "image/jpeg",
+        0.65
+      );
+    });
+
+    return await RawImage.fromBlob(blob);
+
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+// Load the model once.
 async function loadDetector() {
   if (detector) return detector;
 
@@ -63,54 +127,6 @@ async function loadDetector() {
   }
 
   return detectorPromise;
-}
-
-// Resize photos to reduce memory usage.
-async function preparePhoto(file) {
-  let bitmap;
-
-  try {
-    bitmap = await createImageBitmap(file);
-
-    const scale = Math.min(
-      1,
-      MAX_IMAGE_SIZE / Math.max(bitmap.width, bitmap.height)
-    );
-
-    const canvas = document.createElement("canvas");
-
-    canvas.width = Math.round(bitmap.width * scale);
-    canvas.height = Math.round(bitmap.height * scale);
-
-    const context = canvas.getContext("2d");
-
-    if (!context) {
-      throw new Error("Could not prepare the photo.");
-    }
-
-    context.drawImage(
-      bitmap,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
-    const blob = await new Promise((resolve, reject) => {
-      canvas.toBlob(
-        result => result
-          ? resolve(result)
-          : reject(new Error("Photo conversion failed.")),
-        "image/jpeg",
-        0.85
-      );
-    });
-
-    return await RawImage.fromBlob(blob);
-
-  } finally {
-    if (bitmap) bitmap.close();
-  }
 }
 
 function displayResults(detections) {
@@ -136,17 +152,16 @@ function displayResults(detections) {
   results.appendChild(heading);
 
   if (unique.length === 0) {
-    results.appendChild(
-      document.createTextNode(
-        "No foods confidently detected. Please select your foods manually."
-      )
-    );
+    const message = document.createElement("p");
+    message.textContent =
+      "No foods detected confidently. Please select foods manually.";
+    results.appendChild(message);
     return;
   }
 
-  unique.forEach(label => {
+  unique.forEach(food => {
     const row = document.createElement("p");
-    row.textContent = "✓ " + label;
+    row.textContent = "✓ " + food;
     results.appendChild(row);
   });
 }
@@ -160,7 +175,7 @@ button.addEventListener("click", async () => {
   }
 
   if (!file.type.startsWith("image/")) {
-    status.textContent = "Please choose a valid image.";
+    status.textContent = "Please select a valid image.";
     return;
   }
 
@@ -173,25 +188,19 @@ button.addEventListener("click", async () => {
   results.replaceChildren();
 
   try {
-    status.textContent = "Preparing your photo...";
+    status.textContent = "Preparing and compressing photo...";
 
     const image = await preparePhoto(file);
 
-    status.textContent =
-      "Loading AI model. First scan may take a few minutes...";
+    status.textContent = "Loading AI model...";
 
     const model = await loadDetector();
 
     const detections = [];
 
-    // IMPORTANT:
-    // This model expects one candidate label per call.
-    // Do not pass all 22 labels together.
-
     for (let i = 0; i < foods.length; i++) {
       status.textContent =
-        "Checking food " + (i + 1) +
-        " of " + foods.length + "...";
+        "Checking food " + (i + 1) + " of " + foods.length + "...";
 
       const found = await model(
         image,
@@ -207,15 +216,14 @@ button.addEventListener("click", async () => {
     displayResults(detections);
 
     status.textContent =
-      "Scan finished! Please confirm the detected foods.";
+      "Scan complete! Please confirm the food suggestions.";
 
   } catch (error) {
     console.error("GlucoLens error:", error);
 
     status.textContent =
-      "Could not scan photo: " +
-      (error.message || String(error)) +
-      ". Please refresh and try again.";
+      "Scanning failed: " +
+      (error.message || String(error));
 
   } finally {
     button.disabled = false;
